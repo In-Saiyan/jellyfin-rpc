@@ -29,6 +29,27 @@ def confirm(message: str = "Continue", default: bool | None = None, direct: bool
         return None
     return output
 
+# customizable choice prompt
+def choice(message: str = "Select your option: \n", default: int | None = None, options: list[str] = None) -> int:
+    if options is None:
+        options = ["Default"]
+    opts = "\n".join([f"{i + 1}. {x}" if i != default and not default is None else f"{i + 1}. {x} (default)" for i, x in enumerate(options)])
+    full_message = f"{message} \n{opts}\n"
+
+    while True:
+        response = input(full_message).strip()
+        if not response and default is not None:
+            if 0 <= default < len(options):
+                return default
+            else:
+                print("Default option is out of range.")
+                continue
+        if response.isdigit():
+            idx = int(response) - 1
+            if 0 <= idx < len(options):
+                return idx
+        print("Invalid input, select a valid option number.")
+
 
 path = ""
 
@@ -48,7 +69,7 @@ else:
 
 print("""
 Welcome to the Jellyfin-RPC installer
-[https://github.com/Radiicall/jellyfin-rpc#Setup]
+[https://github.com/In-Saiyan/jellyfin-rpc#Setup]
 """)
 
 config_path = path + "main.json"
@@ -210,22 +231,33 @@ if not use_existing:
     else:
         buttons = None
 
+
     print("----------Images----------")
     images = confirm(message="Do you want images?", default=False)
+    imgur = None
+    imgbb = None
+
     if images:
-        imgur_images = confirm("Do you want imgur images?", default=False, direct=True)
-        if imgur_images:
+        # default=0 means "None" is default
+        image_host = choice(
+            message="Choose image host:",
+            default=0,
+            options=["None", "Imgur", "ImgBB"]
+        )
+
+        if image_host == 1:  # Imgur
             client_id = input("Enter your imgur client id: ")
             imgur = {"client_id": client_id}
-        else:
-            imgur = None
+        elif image_host == 2:  # ImgBB
+            api_key = input("Enter your imgbb API key: ")
+            imgbb = {"api_key": api_key}
 
         images = {
             "enable_images": True,
-            "imgur_images": imgur_images,
+            "imgur_images": image_host == 1,
+            "imgbb_images": image_host == 2,
         }
     else:
-        imgur = None
         images = None
 
     discord = {"application_id": appid, "buttons": buttons, "show_paused": show_paused}
@@ -234,14 +266,14 @@ if not use_existing:
         "jellyfin": jellyfin,
         "discord": discord,
         "imgur": imgur,
+        "imgbb": imgbb,
         "images": images,
     }
 
     print(f"\nPlacing config in '{path}'")
+    with open(config_path, "w") as file:
+        file.write(json.dumps(config, indent=2))
 
-    file = open(config_path, "w")
-    file.write(json.dumps(config, indent=2))
-    file.close()
 
 if "--no-install" in sys.argv:
     print("Skipping installation")
@@ -261,7 +293,7 @@ if platform.system() == "Windows":
             "-o",
             path + "jellyfin-rpc.exe",
             "-L",
-            "https://github.com/Radiicall/jellyfin-rpc/releases/latest/download/jellyfin-rpc.exe",
+            "https://github.com/In-Saiyan/jellyfin-rpc/releases/latest/download/jellyfin-rpc.exe",
         ]
     )
 
@@ -313,7 +345,7 @@ if platform.system() == "Windows":
 
 
 elif platform.system() == "Darwin":
-    file = f"https://github.com/Radiicall/jellyfin-rpc/releases/latest/download/jellyfin-rpc-{platform.machine()}-darwin"
+    file = f"https://github.com/In-Saiyan/jellyfin-rpc/releases/latest/download/jellyfin-rpc-{platform.machine()}-darwin"
     subprocess.run(["curl", "-o", "/usr/local/bin/jellyfin-rpc", "-L", file])
     subprocess.run(["chmod", "+x", "/usr/local/bin/jellyfin-rpc"])
 
@@ -382,7 +414,7 @@ else:
             "-o",
             os.environ["HOME"].removesuffix("/") + "/.local/bin/jellyfin-rpc",
             "-L",
-            f"https://github.com/Radiicall/jellyfin-rpc/releases/latest/download/{linux_binary}",
+            f"https://github.com/In-Saiyan/jellyfin-rpc/releases/latest/download/{linux_binary}",
         ]
     )
     subprocess.run(
@@ -414,7 +446,7 @@ else:
 
         content = f"""[Unit]
 Description=Jellyfin-RPC Service
-Documentation=https://github.com/Radiicall/jellyfin-rpc
+Documentation=https://github.com/In-Saiyan/jellyfin-rpc
 After=network.target
 
 [Service]
