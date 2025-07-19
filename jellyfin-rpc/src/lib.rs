@@ -298,6 +298,26 @@ impl Client {
         Ok(())
     }
 
+    fn get_button_name(&self, ext_url: &ExternalUrl) -> String {
+        let session = self.session.as_ref().unwrap();
+        
+        // For music content, check URL patterns to provide more specific button names
+        if session.now_playing_item.media_type == MediaType::Music {
+            let url_lower = ext_url.url.to_lowercase();
+            
+            if url_lower.contains("/artist/") {
+                return "Artist".to_string();
+            } else if url_lower.contains("/track/") || url_lower.contains("/song/") || url_lower.contains("/release/") {
+                return "Track".to_string();
+            } else if url_lower.contains("/album/") {
+                return "Album".to_string();
+            }
+        }
+        
+        // Return the original name for non-music content or unrecognized patterns
+        ext_url.name.clone()
+    }
+
     fn get_buttons(&self) -> Option<Vec<Button>> {
         let session = self.session.as_ref()?;
 
@@ -323,7 +343,7 @@ impl Client {
                 if button.is_dynamic() {
                     if ext_urls.len() > i {
                         activity_buttons.push(Button::new(
-                            ext_urls[i].name.clone(),
+                            self.get_button_name(ext_urls[i]),
                             ext_urls[i].url.clone(),
                         ));
                         i += 1;
@@ -357,7 +377,7 @@ impl Client {
                     break;
                 }
 
-                activity_buttons.push(Button::new(ext_url.name.clone(), ext_url.url.clone()))
+                activity_buttons.push(Button::new(self.get_button_name(ext_url), ext_url.url.clone()))
             }
             return Some(activity_buttons);
         }

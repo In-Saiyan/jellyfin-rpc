@@ -68,7 +68,7 @@ else:
     )
 
 print("""
-Welcome to the Jellyfin-RPC installer
+Welcome to the jellyfin-rpc installer
 [https://github.com/In-Saiyan/jellyfin-rpc#Setup]
 """)
 
@@ -279,12 +279,12 @@ if "--no-install" in sys.argv:
     print("Skipping installation")
     exit(0)
 
-continue_setup = confirm(message="Do you want to download Jellyfin-RPC?", default=True)
+continue_setup = confirm(message="Do you want to download jellyfin-rpc?", default=True)
 if not continue_setup:
     print("Exiting...")
     exit(0)
 
-print("\nDownloading Jellyfin-RPC")
+print("\nDownloading jellyfin-rpc")
 
 if platform.system() == "Windows":
     subprocess.run(
@@ -298,7 +298,7 @@ if platform.system() == "Windows":
     )
 
     autostart = confirm(
-        message="Do you want to autostart Jellyfin-RPC at login?", default=False
+        message="Do you want to autostart jellyfin-rpc at login?", default=False
     )
     if autostart:
         if os.path.isfile(path + "winsw.exe"):
@@ -320,8 +320,8 @@ if platform.system() == "Windows":
 
         content = f"""<service>
     <id>jellyfin-rpc</id>
-    <name>Jellyfin-RPC</name>
-    <description>This service is running Jellyfin-RPC for rich presence support</description>
+    <name>jellyfin-rpc</name>
+    <description>This service is running jellyfin-rpc for rich presence support</description>
     <executable>{path}jellyfin-rpc.exe</executable>
     <arguments>-c {path}main.json -i {path}urls.json</arguments>
 </service>"""
@@ -350,26 +350,26 @@ elif platform.system() == "Darwin":
     subprocess.run(["chmod", "+x", "/usr/local/bin/jellyfin-rpc"])
 
     autostart = confirm(
-        message="Do you want to autostart Jellyfin-RPC at login?", default=False
+        message="Do you want to autostart jellyfin-rpc at login?", default=False
     )
     if autostart:
         if subprocess.run(["pgrep", "-xq", "--", "'jellyfin-rpc'"]).returncode == 0:
             subprocess.run(["killall", "jellyfin-rpc"])
 
         if (
-            "Jellyfin-RPC"
+            "jellyfin-rpc"
             in subprocess.Popen("launchctl list", shell=True, stdout=subprocess.PIPE)
             .stdout.read()
             .decode()
         ):
-            subprocess.run(["launchctl", "remove", "Jellyfin-RPC"])
+            subprocess.run(["launchctl", "remove", "jellyfin-rpc"])
 
         content = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
         <key>Label</key>
-        <string>Jellyfin-RPC</string>
+        <string>jellyfin-rpc</string>
         <key>Program</key>
         <string>/usr/local/bin/jellyfin-rpc</string>
         <key>RunAtLoad</key>
@@ -437,7 +437,7 @@ else:
         )
 
     autostart = confirm(
-        message="Do you want to autostart Jellyfin-RPC at login using systemd?", default=False
+        message="Do you want to autostart jellyfin-rpc at login using systemd?", default=False
     )
     if autostart:
         print(f"\nSetting up service file in {path}")
@@ -445,7 +445,7 @@ else:
         subprocess.run(["mkdir", "-p", path.removesuffix("jellyfin-rpc.service")])
 
         content = f"""[Unit]
-Description=Jellyfin-RPC Service
+Description=jellyfin-rpc Service
 Documentation=https://github.com/In-Saiyan/jellyfin-rpc
 After=network.target
 
@@ -466,6 +466,6 @@ WantedBy=default.target"""
             ["systemctl", "--user", "enable", "--now", "jellyfin-rpc.service"]
         )
 
-        print("Jellyfin-RPC is now set up to start at login.")
+        print("jellyfin-rpc is now set up to start at login.")
 
 print("Installation complete!")
